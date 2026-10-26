@@ -18,7 +18,8 @@ app.use(express.json({ limit: '1mb' }));
 const env = (k) => (process.env[k] || '').trim();
 const MODEL = env('CLAUDE_MODEL') || 'claude-opus-5-5';
 const GEMINI_TTS_MODEL = env('GEMINI_TTS_MODEL') || 'gemini-2.5-flash-preview-tts';
-const ELEVEN_MODEL = env('ELEVENLABS_MODEL') || 'eleven_turbo_v2_5';
+const ELEVEN_MODEL = env('ELEVENLABS_MODEL') || 'eleven_v4_turbo';
+const ELEVEN_FALLBACK = 'eleven_flash_v2_5';   // used if the account or endpoint rejects the main model
 
 // voices offered per provider (ids are each provider's own names)
 const VOICES = {
@@ -28,30 +29,27 @@ const VOICES = {
     ['MF3mGyEYCl7XYWbV9V6O', 'Elli'], ['TxGEqnHWrfWFTfGW9XjX', 'Josh'], ['VR6AewLTigWG4xSOukaG', 'Arnold'], ['jBpfuIE2acCO8z3wKNLl', 'Gigi']],
 };
 
-// The voices the ElevenLabs account actually has (premade ids differ between accounts), cached for an hour.
-// A requested id the account lacks maps to one of its voices of the same gender, stable per id.
-const ELEVEN_GENDER = { '21m00Tcm4TlvDq8NMMr': 'female', pNInz6obpgDQGcFmaJgB: 'male', EXAVITQu4vr4xnSDxMaL: 'female', ErXwobaYiN019PkySvjV: 'male',
+// ElevenLabs voices come from the account's own library (its default voices only exist on accounts created
+// before March 2026): set ELEVENLABS_FEMALE_VOICES / ELEVENLABS_MALE_VOICES (comma-separated voice ids) and
+// optionally ELEVENLABS_NARRATOR_VOICE. Each character keeps the same voice: its preset id hashes into its gender's list.
+const ELEVEN_GENDER = { '21m00Tcm4TlvDq8NMMr': 'female', pNInz6obpgDQGcFmaJgB: 'male', EXAVITQu4vr4xnSDxMaL: 'narrator', ErXwobaYiN019PkySvjV: 'male',
   MF3mGyEYCl7XYWbV9V6O: 'female', TxGEqnHWrfWFTfGW9XjX: 'male', VR6AewLTigWG4xSOukaG: 'male', jBpfuIE2acCO8z3wKNLl: 'female' };
-let elevenVoices = null, elevenAt = 0;
-async function accountVoices() {
-  if (elevenVoices && Date.now() - elevenAt < 3600e3) return elevenVoices;
-  const r = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': env('ELEVENLABS_API_KEY') } });
-  if (!r.ok) throw new Error(`ElevenLabs voices ${r.status}`);
-  elevenVoices = ((await r.json()).voices || []).map(v => ({ id: v.voice_id, name: v.name, gender: (v.labels?.gender || '').toLowerCase() }));
-  elevenAt = Date.now(); return elevenVoices;
-}
-async function elevenVoiceFor(id) {
-  let list = [];
-  try { list = await accountVoices(); } catch (e) { console.warn(e.message, '(is voices_read allowed on the key?)'); }
-  if (!list.length || list.some(v => v.id === id)) return id;
-  const want = ELEVEN_GENDER[id], pool = list.filter(v => !want || v.gender === want);
-  const from = pool.length ? pool : list, h = [...String(id)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
-  return from[h % from.length].id;
+const ids = (k) => env(k).split(',').map(x => x.trim()).filter(Boolean);
+function elevenVoiceFor(id) {
+  const female = ids('ELEVENLABS_FEMALE_VOICES'), male = ids('ELEVENLABS_MALE_VOICES'), narrator = env('ELEVENLABS_NARRATOR_VOICE');
+  const role = ELEVEN_GENDER[id];
+  if (!role) return id;   // already an id from the account
+  if (role === 'narrator' && narrator) return narrator;
+  const pool = role === 'male' ? (male.length ? male : female) : (female.length ? female : male);
+  if (!pool.length) return id;
+  const h = [...String(id)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  return pool[h % pool.length];
 }
 
 app.get('/api/config', (req, res) => {
   res.json({
-    claude: !!env('ANTHROPIC_API_KEY'), gemini: !!env('GEMINI_API_KEY'), elevenlabs: !!env('ELEVENLABS_API_KEY'),
+    claude: !!env('ANTHROPIC_API_KEY'), gemini: !!env('GEMINI_API_KEY'),
+    elevenlabs: !!env('ELEVENLABS_API_KEY') && (ids('ELEVENLABS_FEMALE_VOICES').length + ids('ELEVENLABS_MALE_VOICES').length > 0),
     voices: VOICES, moves: MOVE_KEYS, expressions: EXPR_KEYS,
   });
 });
@@ -123,11 +121,16 @@ app.post('/api/tts', async (req, res) => {
     let buf, type;
     if (provider === 'elevenlabs') {
       if (!env('ELEVENLABS_API_KEY')) return res.status(400).json({ error: 'No ElevenLabs key set.' });
-      const id = await elevenVoiceFor(voice || VOICES.elevenlabs[0][0]);
-      const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(id)}?output_format=mp3_44100_128`, {
+      const id = elevenVoiceFor(voice || VOICES.elevenlabs[0][0]);
+      const say = (model) => fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(id)}?output_format=mp3_44100_128`, {
         method: 'POST', headers: { 'xi-api-key': env('ELEVENLABS_API_KEY'), 'content-type': 'application/json', accept: 'audio/mpeg' },
-        body: JSON.stringify({ text: line, model_id: ELEVEN_MODEL, voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.35 } }),
+        body: JSON.stringify({ text: line, model_id: model, voice_settings: { stability: 0.45, similarity_boost: 0.8 } }),
       });
+      let r = await say(ELEVEN_MODEL);
+      if (!r.ok && ELEVEN_MODEL !== ELEVEN_FALLBACK && r.status === 400) {   // an unsupported model is a 400; a bad voice or key is not
+        console.warn(`ElevenLabs rejected ${ELEVEN_MODEL}: ${(await r.text()).slice(0, 200)}; using ${ELEVEN_FALLBACK}`);
+        r = await say(ELEVEN_FALLBACK);
+      }
       if (!r.ok) throw new Error(`ElevenLabs ${r.status}: ${(await r.text()).slice(0, 200)}`);
       buf = Buffer.from(await r.arrayBuffer()); type = 'audio/mpeg';
     } else {

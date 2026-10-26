@@ -5,7 +5,7 @@
 - **Characters**: a Mii-style character builder (`/creator/`) on a rigged 2D-mesh puppet: faces, bodies, hair, outfits, shoes, facial hair. Characters you save there appear on the home page, next to six ready-made ones.
 - **Places**: four hand-painted parallax sets, or describe any place and Claude paints it as layered SVG.
 - **Stories**: six story starters, or tell your own.
-- **Voices**: Gemini text-to-speech or ElevenLabs (Turbo v2.5), with lip sync driven by the audio. Without a voice key, the browser's built-in voice reads the lines.
+- **Voices**: Gemini text-to-speech or ElevenLabs (Eleven v4 Turbo), with lip sync driven by the audio. Without a voice key, the browser's built-in voice reads the lines.
 
 This is its own project. It isn't the Explainerly explainer site, toonscript or same-movie-studio.
 
@@ -47,7 +47,9 @@ Environment variables:
 | `CLAUDE_MODEL` | optional, default `claude-opus-5-5` |
 | `CLAUDE_EFFORT` | optional, default `medium` |
 | `GEMINI_TTS_MODEL` | optional, default `gemini-2.5-flash-preview-tts` |
-| `ELEVENLABS_MODEL` | optional, default `eleven_turbo_v2_5` |
+| `ELEVENLABS_MODEL` | optional, default `eleven_v4_turbo` (falls back to `eleven_flash_v2_5` if rejected) |
+| `ELEVENLABS_FEMALE_VOICES`, `ELEVENLABS_MALE_VOICES` | comma-separated voice ids from your ElevenLabs library |
+| `ELEVENLABS_NARRATOR_VOICE` | optional voice id for the narrator |
 | `STORY_LIMIT_PER_HOUR`, `TTS_LIMIT_PER_HOUR` | optional per-visitor limits (20 / 400) |
 
 Claude requests opt into server-side refusal fallbacks (`fallbacks: "default"`), so a declined request is retried on Anthropic's recommended fallback model.
