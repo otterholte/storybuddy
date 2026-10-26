@@ -1,5 +1,5 @@
 // End-to-end check: home page -> make a cartoon -> play it, saving frames along the way.
-//   node tools/smoke.mjs [outDir] [placeId] [castIds]
+//   node tools/smoke.mjs [outDir] [placeId] [castIds]     (BASE=https://... tests a deployed site; VOICE=gemini|elevenlabs|browser)
 import puppeteer from 'puppeteer-core';
 import { spawn } from 'child_process';
 import fs from 'fs';
@@ -9,8 +9,9 @@ import { fileURLToPath } from 'url';
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const out = path.resolve(process.argv[2] || path.join(root, 'out/smoke')); fs.mkdirSync(out, { recursive: true });
 const place = process.argv[3] || 'park', cast = (process.argv[4] || 'maya,leo,zara').split(',');
-const PORT = 8098, server = spawn(process.execPath, [path.join(root, 'server.js')], { env: { ...process.env, PORT: String(PORT) }, stdio: ['ignore', 'inherit', 'inherit'] });
-await new Promise(r => setTimeout(r, 1200));
+const BASE = process.env.BASE, PORT = 8098, server = BASE ? null : spawn(process.execPath, [path.join(root, 'server.js')], { env: { ...process.env, PORT: String(PORT) }, stdio: ['ignore', 'inherit', 'inherit'] });
+if (!BASE) await new Promise(r => setTimeout(r, 1200));
+const url = BASE || `http://localhost:${PORT}`;
 const browser = await puppeteer.launch({ executablePath: process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: 'new',
   args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'] });
 try {
@@ -18,7 +19,7 @@ try {
   page.on('pageerror', e => console.log('[pageerror]', e.message));
   page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') console.log('[page]', m.text()); });
   await page.setViewport({ width: 1440, height: 900 });
-  await page.goto(`http://localhost:${PORT}/`);
+  await page.goto(url + '/');
   await page.evaluate((place, cast) => { localStorage.setItem('storybuddy.pick', JSON.stringify({ cast, place, story: 'kite', placeText: '', storyText: '' })); localStorage.setItem('storybuddy.voice', JSON.stringify(process?.env?.VOICE || 'browser')); }, place, cast).catch(() => {});
   await page.evaluate((v) => localStorage.setItem('storybuddy.voice', JSON.stringify(v)), process.env.VOICE || 'browser');
   await page.reload(); await new Promise(r => setTimeout(r, 1500));
@@ -35,4 +36,4 @@ try {
       if (await page.$('#end.show')) { console.log('ended at frame', i); break; }
     }
   }
-} finally { await browser.close(); server.kill(); }
+} finally { await browser.close(); server?.kill(); }
