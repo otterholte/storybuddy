@@ -1,0 +1,28 @@
+<!doctype html><meta charset="utf-8"><title>thumbs</title>
+<style>body{margin:0;background:#111}canvas{display:block}</style>
+<canvas id="c" width="1600" height="1000"></canvas>
+<script type="module">
+// dev page for tools/render-images.mjs: renders preset character thumbnails and the hero shot
+import { Stage } from './js/stage.js';
+import { CHARACTERS, PLACES } from './js/presets.js';
+import { presetLook } from './js/common.js';
+const c = document.getElementById('c'), st = new Stage(c);
+await st.load();
+window.render = async (kind, arg) => {
+  if (kind === 'char') {
+    const ch = CHARACTERS.find(x => x.id === arg);
+    await st.setLocation({ ...PLACES[0], layers: PLACES[0].layers.filter(l => l.depth < 0.5) });
+    st.setCast([{ id: ch.id, look: presetLook(ch), x: 0 }]);
+    st.shot = { x: 0, y: ch.body === 'child' ? -560 : -880, z: ch.body === 'child' ? 2.6 : 2.15 };
+    st.act(ch.id, 'idle', 0, { expr: 'happy' });
+  } else {
+
+    await st.setLocation(PLACES[0]); st.shot = null; st.cam.init = false;
+    st.setCast([{ id: 'maya', look: presetLook(CHARACTERS[0]), x: -0.3 }, { id: 'leo', look: presetLook(CHARACTERS[1]), x: 0.3 }]);
+    st.act('maya', 'wave', 0, { expr: 'happy' }); st.act('leo', 'clap', 0, { expr: 'bigGrin' });
+  }
+  for (let i = 0; i < 120; i++) st.frame(i / 60 + 0.4, { speaker: null, speakerX: null, mouth: 0 }, 2);
+  return true;
+};
+window.ready = true;
+</script>

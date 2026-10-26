@@ -1,0 +1,22 @@
+<!doctype html><meta charset=utf-8><body style="background:#444">
+<script type=module>
+// Every creator texture module paints here; bake.mjs writes the results to creator/tex/.
+import { paintWardrobe } from './wardrobe.js';
+import { paintBody, paintGlasses } from './body.js';
+import { paintHair } from './hair.js';
+import { normalMap } from '../../mesh/paint/lib.js';
+window.bake = async (only) => {
+  const want = (k) => !only || only.includes(k);
+  const out = {};
+  for (const painter of [paintWardrobe, paintBody, paintGlasses, paintHair]) {
+    const all = painter(want);
+    for (const [k, t] of Object.entries(all)) {
+      if (!want(k)) continue;
+      out[k] = { box: t.box, D: t.D, w: t.c.width, h: t.c.height, png: t.c.toDataURL('image/png') };
+      if (t.height) out[k].nrm = normalMap(t, t.height).toDataURL('image/png');
+    }
+  }
+  return out;
+};
+window.ready = true;
+</script>

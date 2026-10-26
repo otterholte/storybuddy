@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Character builder · Storybuddy</title><link rel="icon" href="../img/icon.svg">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{color-scheme:dark;--bg:#1b1714;--panel:#262019;--panel2:#30281f;--line:#43382b;--ink:#f6ecdf;--dim:#b8a891;--acc:#f2b15a;--acc2:#e8873a;--sel:#3d3022}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.35 system-ui,-apple-system,Segoe UI,sans-serif}
+body{display:grid;grid-template-columns:76px 360px 1fr;grid-template-rows:56px 1fr;grid-template-areas:"top top top" "cats panel stage";height:100%;overflow:hidden}
+header{grid-area:top}nav{grid-area:cats}#panel{grid-area:panel}main{grid-area:stage}
+header{display:flex;flex-wrap:nowrap;white-space:nowrap;overflow-x:auto;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:16px;margin:0 12px 0 0;letter-spacing:.02em}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;color:var(--dim);padding:6px 12px;border-radius:999px;cursor:pointer;font:inherit}
+.seg button.on{background:var(--acc);color:#2a1d0c;font-weight:600}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:7px 12px;border-radius:10px;cursor:pointer;font:inherit}
+.btn:hover{border-color:var(--acc)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--acc);color:#2a1d0c;border-color:var(--acc);font-weight:600}
+.btn.ghost{background:none}
+.saveform{display:flex;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.saveform input{flex:1;min-width:0;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit}
+.saved{display:grid;gap:8px}
+.card{display:grid;grid-template-columns:56px 1fr auto auto;align-items:center;gap:10px;background:var(--panel2);border-radius:12px;padding:6px 8px}
+.card img{width:56px;height:56px;border-radius:8px;object-fit:cover;background:var(--bg)}
+.card .meta{display:flex;flex-direction:column;min-width:0}
+.card .meta b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .meta span{color:var(--dim);font-size:12px}
+.btn:disabled:hover{border-color:var(--line)}
+#random{background:var(--acc);color:#2a1d0c;border-color:var(--acc);font-weight:600}
+.sp{flex:1}
+nav{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:8px 6px;gap:4px;overflow:auto}
+nav button{border:0;background:none;color:var(--dim);border-radius:12px;padding:8px 2px;cursor:pointer;font:600 11px system-ui;display:flex;flex-direction:column;align-items:center;gap:4px}
+nav button svg{width:30px;height:30px}
+nav button.on{background:var(--sel);color:var(--acc)}
+#panel{background:var(--panel);border-right:1px solid var(--line);overflow:auto;padding:14px 16px 24px}
+#panel h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin:16px 0 8px}
+#panel h2:first-child{margin-top:0}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:var(--panel2);border:2px solid transparent;border-radius:14px;padding:6px 4px 6px;cursor:pointer;color:var(--ink);font:12px system-ui;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tile svg{width:64px;height:52px}
+.tile.on{border-color:var(--acc);background:var(--sel)}
+.pad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,40px);gap:6px;justify-content:start}
+.pad button,.mini button{border:1px solid var(--line);background:var(--panel2);color:var(--ink);border-radius:10px;cursor:pointer;font:600 16px system-ui}
+.pad button:hover,.mini button:hover{border-color:var(--acc)}
+.place{display:flex;gap:18px;align-items:flex-start}
+.mini{display:grid;grid-template-columns:44px 44px;gap:6px}
+.mini button{height:40px}
+.lbl{font-size:11px;color:var(--dim);grid-column:1/-1;text-align:center}
+.mid{font-size:11px;color:var(--dim);display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3}
+@media (max-width:760px){
+ body{grid-template-columns:1fr;grid-template-rows:auto auto auto auto;grid-template-areas:"top" "stage" "cats" "panel";height:auto;min-height:100%;overflow:auto}
+ header{padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+ header h1{display:none}
+ main{padding:12px 0}
+ canvas{width:min(calc(100vw - 32px),70vh)}
+ nav{flex-direction:row;overflow-x:auto;border-right:0;border-block:1px solid var(--line);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+ nav button{min-width:62px}
+ #panel{border-right:0;overflow:visible;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+ .hint{display:none}
+}
+@media (min-width:761px) and (max-width:1100px){body{grid-template-columns:64px 300px 1fr}header h1{display:none}.btn{padding:6px 9px}.tile svg{width:52px;height:44px}}
+.sw{display:flex;flex-wrap:wrap;gap:8px}
+.sw button{width:34px;height:34px;border-radius:50%;border:3px solid var(--panel);outline:2px solid transparent;cursor:pointer}
+.sw button.on{outline-color:var(--acc)}
+.row{display:grid;grid-template-columns:92px 1fr 44px;align-items:center;gap:10px;margin:6px 0}
+.row input{width:100%;accent-color:var(--acc)}
+.row span{color:var(--dim);font-variant-numeric:tabular-nums;text-align:right;font-size:12px}
+.hint{color:var(--dim);font-size:12px;margin-top:14px;line-height:1.5}
+kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;font:11px ui-monospace,monospace;color:var(--ink)}
+main{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;min-width:0;background:#120f0c}
+canvas{width:min(calc(100% - 24px),calc(100vh - 80px));height:auto;aspect-ratio:1/1;border-radius:8px;box-shadow:0 10px 40px #0008}
+#toast{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:10px;opacity:0;transition:opacity .25s}
+#toast.show{opacity:1}
+#caption{position:absolute;top:16px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:6px 14px;border-radius:999px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+#caption.show{opacity:.92}
+#loading{position:absolute;color:var(--dim)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style></head>
+<body>
+<header>
+  <a class="btn" href="../" title="Back to Storybuddy" style="text-decoration:none">← Storybuddy</a>
+  <h1>Character builder</h1>
+  <div class="seg" id="sex"></div>
+  <div class="seg" id="mode"></div>
+  <div class="seg" id="view"></div>
+  <span class="sp"></span>
+  <button class="btn" id="sound">Sound off</button>
+  <button class="btn" id="undo" aria-label="Undo">↶ Undo</button>
+  <button class="btn" id="redo" aria-label="Redo">↷ Redo</button>
+  <button class="btn" id="random">Randomize</button>
+  <button class="btn" id="reset">Reset</button>
+  <button class="btn" id="save">Save</button>
+  <button class="btn" id="export">Export</button>
+  <button class="btn" id="load">Load</button>
+  <button class="btn" id="copy">Copy JSON</button>
+</header>
+<nav id="cats"></nav>
+<section id="panel"></section>
+<main><canvas id="c" width="1080" height="1080"></canvas><div id="loading">Loading textures…</div><div id="caption"></div><div id="toast"></div></main>
+<script src="../shared/timeline.js"></script><script src="../shared/cues.js"></script>
+<script type="module" src="js/app.js"></script>
+</body></html>

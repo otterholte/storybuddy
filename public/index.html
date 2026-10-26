@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storybuddy · Make a cartoon in three picks</title>
+<meta name="description" content="Build a cartoon character, pick a place and a story, and Storybuddy writes, animates and voices it for you.">
+<link rel="icon" href="img/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="top">
+  <a class="brand" href="./"><span class="logo">✦</span>Storybuddy</a>
+  <span class="sp"></span>
+  <a class="link" href="creator/">Build a character</a>
+</div>
+
+<div class="hero">
+  <div>
+    <h1>Make a <em>cartoon</em> in three picks.</h1>
+    <p>Choose who's in it, where it happens and what goes on. Storybuddy writes the script, paints the set, gives everyone a voice and animates the whole thing.</p>
+    <div class="steps"><span><b>1</b> Characters</span><span><b>2</b> A place</span><span><b>3</b> A story</span></div>
+  </div>
+  <div class="art"><img src="img/hero.jpg" alt="Maya and Leo in a sunny park"></div>
+</div>
+
+<main>
+  <section class="pick" id="pickCast">
+    <header><h2><span class="n">1</span>Who's in it?</h2><p>Pick up to three. Build your own and they'll show up here.</p></header>
+    <div class="grid" id="cast"></div>
+  </section>
+
+  <section class="pick" id="pickPlace">
+    <header><h2><span class="n">2</span>Where does it happen?</h2><p>Pick a place, or describe one and Storybuddy will paint it.</p></header>
+    <div class="grid wide" id="places"></div>
+    <div class="custom" id="placeCustom">
+      <textarea id="placeText" rows="2" maxlength="300" placeholder="A candy-colored castle on a cloud, with rainbow bridges…"></textarea>
+      <div class="chips" id="placeIdeas"></div>
+    </div>
+  </section>
+
+  <section class="pick" id="pickStory">
+    <header><h2><span class="n">3</span>What happens?</h2><p>Pick a story, or tell your own.</p></header>
+    <div class="grid wide" id="stories"></div>
+    <div class="custom" id="storyCustom">
+      <textarea id="storyText" rows="3" maxlength="600" placeholder="They find a lost puppy and try to get it home before the big storm…"></textarea>
+      <div class="chips" id="storyIdeas"></div>
+    </div>
+  </section>
+</main>
+
+<div class="dock">
+  <div class="sum" id="sum">Pick your characters to begin.</div>
+  <label for="voiceSel">Voices <select id="voiceSel"></select></label>
+  <button class="btn go" id="go" disabled>✦ Make my cartoon</button>
+</div>
+<script type="module" src="js/home.js"></script>
+</body>
+</html>

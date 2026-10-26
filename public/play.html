@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your cartoon · Storybuddy</title>
+<link rel="icon" href="img/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body class="player">
+<div class="top">
+  <a class="brand" href="./"><span class="logo">✦</span>Storybuddy</a>
+  <span class="sp"></span>
+  <a class="link" href="creator/">Build a character</a>
+  <a class="link" href="./">New story</a>
+</div>
+<div class="screen">
+  <canvas id="c" width="1920" height="1080" aria-label="Your cartoon"></canvas>
+  <div class="sub" id="sub" aria-live="polite"></div>
+  <div class="over show" id="loading"><div><div class="blob"></div><h1>Making your cartoon</h1><div class="bar" id="bar"><i></i></div><p id="status">Getting everything ready…</p></div></div>
+  <div class="over" id="start"><div><h1 id="title">Your cartoon</h1><p id="logline"></p><button class="btn go" id="play">▶ Play</button></div></div>
+  <div class="over" id="end"><div><h1>The End!</h1><p>Want to watch it again, or send your characters on a new adventure?</p>
+    <button class="btn go" id="again">↻ Watch again</button> <a class="btn ghost" href="./">✦ New story</a></div></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script type="module" src="js/player.js"></script>
+</body>
+</html>
