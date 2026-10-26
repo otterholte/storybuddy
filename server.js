@@ -28,6 +28,27 @@ const VOICES = {
     ['MF3mGyEYCl7XYWbV9V6O', 'Elli'], ['TxGEqnHWrfWFTfGW9XjX', 'Josh'], ['VR6AewLTigWG4xSOukaG', 'Arnold'], ['jBpfuIE2acCO8z3wKNLl', 'Gigi']],
 };
 
+// The voices the ElevenLabs account actually has (premade ids differ between accounts), cached for an hour.
+// A requested id the account lacks maps to one of its voices of the same gender, stable per id.
+const ELEVEN_GENDER = { '21m00Tcm4TlvDq8NMMr': 'female', pNInz6obpgDQGcFmaJgB: 'male', EXAVITQu4vr4xnSDxMaL: 'female', ErXwobaYiN019PkySvjV: 'male',
+  MF3mGyEYCl7XYWbV9V6O: 'female', TxGEqnHWrfWFTfGW9XjX: 'male', VR6AewLTigWG4xSOukaG: 'male', jBpfuIE2acCO8z3wKNLl: 'female' };
+let elevenVoices = null, elevenAt = 0;
+async function accountVoices() {
+  if (elevenVoices && Date.now() - elevenAt < 3600e3) return elevenVoices;
+  const r = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': env('ELEVENLABS_API_KEY') } });
+  if (!r.ok) throw new Error(`ElevenLabs voices ${r.status}`);
+  elevenVoices = ((await r.json()).voices || []).map(v => ({ id: v.voice_id, name: v.name, gender: (v.labels?.gender || '').toLowerCase() }));
+  elevenAt = Date.now(); return elevenVoices;
+}
+async function elevenVoiceFor(id) {
+  let list = [];
+  try { list = await accountVoices(); } catch (e) { console.warn(e.message, '(is voices_read allowed on the key?)'); }
+  if (!list.length || list.some(v => v.id === id)) return id;
+  const want = ELEVEN_GENDER[id], pool = list.filter(v => !want || v.gender === want);
+  const from = pool.length ? pool : list, h = [...String(id)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  return from[h % from.length].id;
+}
+
 app.get('/api/config', (req, res) => {
   res.json({
     claude: !!env('ANTHROPIC_API_KEY'), gemini: !!env('GEMINI_API_KEY'), elevenlabs: !!env('ELEVENLABS_API_KEY'),
@@ -102,7 +123,7 @@ app.post('/api/tts', async (req, res) => {
     let buf, type;
     if (provider === 'elevenlabs') {
       if (!env('ELEVENLABS_API_KEY')) return res.status(400).json({ error: 'No ElevenLabs key set.' });
-      const id = voice || VOICES.elevenlabs[0][0];
+      const id = await elevenVoiceFor(voice || VOICES.elevenlabs[0][0]);
       const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(id)}?output_format=mp3_44100_128`, {
         method: 'POST', headers: { 'xi-api-key': env('ELEVENLABS_API_KEY'), 'content-type': 'application/json', accept: 'audio/mpeg' },
         body: JSON.stringify({ text: line, model_id: ELEVEN_MODEL, voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.35 } }),
