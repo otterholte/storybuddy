@@ -48,8 +48,6 @@ Environment variables:
 | `CLAUDE_EFFORT` | optional, default `medium` |
 | `GEMINI_TTS_MODEL` | optional, default `gemini-2.5-flash-preview-tts` |
 | `ELEVENLABS_MODEL` | optional, default `eleven_v4_turbo` (falls back to `eleven_flash_v2_5` if rejected) |
-| `ELEVENLABS_FEMALE_VOICES`, `ELEVENLABS_MALE_VOICES` | comma-separated voice ids from your ElevenLabs library |
-| `ELEVENLABS_NARRATOR_VOICE` | optional voice id for the narrator |
 | `STORY_LIMIT_PER_HOUR`, `TTS_LIMIT_PER_HOUR` | optional per-visitor limits (20 / 400) |
 
 Claude requests opt into server-side refusal fallbacks (`fallbacks: "default"`), so a declined request is retried on Anthropic's recommended fallback model.

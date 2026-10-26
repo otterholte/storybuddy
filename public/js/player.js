@@ -38,7 +38,7 @@ function resolveLocations(s) {
 
 // ---------------------------------------------------------------- 2. voice
 const voiceFor = (who) => {
-  if (who === 'narrator') return order.provider === 'elevenlabs' ? 'EXAVITQu4vr4xnSDxMaL' : 'Sulafat';
+  if (who === 'narrator') return order.provider === 'elevenlabs' ? 'nPczCjzI2devNBz1zQrb' : 'Sulafat';
   const c = order.cast.find(c => c.id === who); return c?.voice?.[order.provider];
 };
 async function voiceLine(b) {

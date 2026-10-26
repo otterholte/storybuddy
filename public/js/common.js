@@ -18,7 +18,7 @@ export function savedCharacters() {
     id: 'my' + i + '-' + String(s.name || 'friend').toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 12),
     name: s.name || 'My character', blurb: 'Made by you', thumb: s.thumb, look: s.look, mine: true,
     describe: describeLook(s.look),
-    voice: s.look?.sex === 'male' ? { gemini: 'Puck', elevenlabs: 'pNInz6obpgDQGcFmaJgB' } : { gemini: 'Kore', elevenlabs: '21m00Tcm4TlvDq8NMMr' },
+    voice: s.look?.sex === 'male' ? { gemini: 'Puck', elevenlabs: 'bIHbv24MWmeRgasZH58o' } : { gemini: 'Kore', elevenlabs: 'cgSgspJ2msm6clMCkdW9' },
   }));
 }
 export function describeLook(L = {}) {

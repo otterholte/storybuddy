@@ -20,7 +20,7 @@ try {
   page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') console.log('[page]', m.text()); });
   await page.setViewport({ width: 1440, height: 900 });
   await page.goto(url + '/');
-  await page.evaluate((place, cast) => { localStorage.setItem('storybuddy.pick', JSON.stringify({ cast, place, story: 'kite', placeText: '', storyText: '' })); localStorage.setItem('storybuddy.voice', JSON.stringify(process?.env?.VOICE || 'browser')); }, place, cast).catch(() => {});
+  await page.evaluate((place, cast, extra) => { localStorage.setItem('storybuddy.pick', JSON.stringify({ cast, place: extra.placeText ? 'custom' : place, story: extra.storyText ? 'custom' : 'kite', placeText: extra.placeText, storyText: extra.storyText }));  }, place, cast, { placeText: process.env.PLACE_TEXT || '', storyText: process.env.STORY_TEXT || '' }).catch(() => {});
   await page.evaluate((v) => localStorage.setItem('storybuddy.voice', JSON.stringify(v)), process.env.VOICE || 'browser');
   await page.reload(); await new Promise(r => setTimeout(r, 1500));
   await page.screenshot({ path: path.join(out, '0-home.jpg'), type: 'jpeg', quality: 80, fullPage: true });
@@ -30,7 +30,7 @@ try {
   else {
     await page.screenshot({ path: path.join(out, '1-start.jpg'), type: 'jpeg', quality: 82 });
     await page.click('#play');
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < 60; i++) {
       await new Promise(r => setTimeout(r, 2500));
       await page.screenshot({ path: path.join(out, `2-play-${String(i).padStart(2, '0')}.jpg`), type: 'jpeg', quality: 82 });
       if (await page.$('#end.show')) { console.log('ended at frame', i); break; }
